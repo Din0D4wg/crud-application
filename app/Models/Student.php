@@ -10,7 +10,12 @@ class Student extends Model
     use HasFactory; 
 
     protected $fillable = [
-        'firstname', 'lastname', 'username', 'email', 'phone', 'password',
+        'firstname', 'lastname', 'username', 'email', 'phone', 'password', 'role',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     public function getFullNameAttribute()
@@ -18,4 +23,7 @@ class Student extends Model
         return "{$this->firstname} {$this->lastname}";
     }
 
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
 }
