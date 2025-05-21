@@ -11,6 +11,16 @@
     <div class="max-w-xl mx-auto py-10 px-4">
         <h1 class="text-3xl font-bold mb-6 text-center">Edit Student User Information</h1>
         
+        @if ($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        
         <form method="POST" action="{{ route('students.update', $student) }}" autocomplete="off" class="bg-white p-6 rounded shadow">
             @csrf
             @method('PUT')
@@ -45,13 +55,11 @@
                        class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="mb-6">
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" value="{{ $student->password }}"
-                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div class="text-right">
+            <div class="flex justify-between mt-4">
+                <a href="{{ route('students.index') }}"
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Go Back
+                </a>
                 <button type="submit"
                         class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow">
                     Update

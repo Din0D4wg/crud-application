@@ -62,14 +62,23 @@ class StudentController extends Controller
 
     public function update(Student $student, Request $request) {
         try {
-            $data = $request->validate([
+            $emailChanged = $request->email !== $student->email;
+            
+            // Basic validation
+            $validationRules = [
                 'firstname' => 'required|string',
                 'lastname' => 'required|string',
                 'username' => 'required|unique:students,username,'.$student->id,
-                'email' => 'required|email|unique:users,email,'.$student->user_id,
                 'phone' => 'nullable|string',
-                'password' => 'nullable|min:6',
-            ]);
+            ];
+            
+            if ($emailChanged) {
+                $validationRules['email'] = 'required|email|unique:users,email,'.$student->user_id;
+            } else {
+                $validationRules['email'] = 'required|email';
+            }
+            
+            $data = $request->validate($validationRules);
 
             // Update student record
             $student->update([
@@ -80,18 +89,47 @@ class StudentController extends Controller
                 'phone' => $data['phone'] ?? null,
             ]);
             
-            // Update related user account
             $user = $student->user;
-            $updateData = [
-                'name' => $data['firstname'] . ' ' . $data['lastname'],
-                'email' => $data['email'],
-            ];
             
-            if (!empty($data['password'])) {
-                $updateData['password'] = Hash::make($data['password']);
+
+            $existingUserWithEmail = User::where('email', $data['email'])
+                                    ->where('id', '!=', $student->user_id)
+                                    ->first();
+            
+            if ($existingUserWithEmail) {
+                Log::info('Linking student ' . $student->id . ' to existing user ' . $existingUserWithEmail->id);
+                $student->update(['user_id' => $existingUserWithEmail->id]);
+                $user = $existingUserWithEmail;
             }
             
-            $user->update($updateData);
+            if ($user) {
+                $updateData = [
+                    'name' => $data['firstname'] . ' ' . $data['lastname'],
+                    'email' => $data['email'],
+                ];
+                
+                if ($request->filled('password')) {
+                    $updateData['password'] = Hash::make($request->password);
+                }
+                
+                $user->update($updateData);
+            } else {
+                $existingUser = User::where('email', $data['email'])->first();
+                
+                if ($existingUser) {
+                    $student->update(['user_id' => $existingUser->id]);
+                } else {
+                    // Only create a new user if one doesn't already exist with this email
+                    $user = User::create([
+                        'name' => $data['firstname'] . ' ' . $data['lastname'],
+                        'email' => $data['email'],
+                        'password' => Hash::make($request->password ?? 'password123'), // Default password
+                        'role' => 'student'
+                    ]);
+                    
+                    $student->update(['user_id' => $user->id]);
+                }
+            }
 
             return redirect(route('students.index'))->with('success', 'Student updated successfully');
         } catch (Exception $e) {
@@ -101,7 +139,7 @@ class StudentController extends Controller
     }
 
     public function delete(Student $student) {
-        // Delete the user account (will cascade to student)
+        // Delete the user account
         if ($student->user) {
             $student->user->delete();
         } else {

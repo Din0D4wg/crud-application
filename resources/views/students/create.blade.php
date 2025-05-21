@@ -61,7 +61,11 @@
                        class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="text-right">
+            <div class="flex justify-between mt-4">
+                <a href="{{ url()->previous() }}"
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Go Back
+                </a>
                 <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                     Save New Student

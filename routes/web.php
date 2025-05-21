@@ -16,7 +16,9 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/dashboard', function() {
+        return redirect()->route('students.index');
+    })->name('admin.dashboard');
     
     Route::get('/students', [StudentController::class, 'index'])->name('students.index');
     Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
@@ -27,13 +29,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 });
 
 Route::middleware(['auth', 'student'])->group(function () {
-    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/dashboard-posts', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
-    Route::get('/posts/{post}/edit', [PostController::class, 'EditPostHere'])->name('posts.edit');
-    Route::put('/posts/{post}', [PostController::class, 'SaveEditedPost'])->name('posts.update');
-    Route::delete('/posts/{post}', [PostController::class, 'DeletePost'])->name('posts.delete');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update'); 
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

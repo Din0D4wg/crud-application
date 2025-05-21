@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\AdminMiddleware;
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
-use App\Models\Student;
-use App\Observers\StudentObserver;
+use Illuminate\Contracts\Http\Kernel;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +17,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Student::observe(StudentObserver::class);
+        $this->app->bind('middleware.admin', AdminMiddleware::class);
+
+        $this->app->bind('middleware.student', \App\Http\Middleware\StudentMiddleware::class);
+
     }
 }

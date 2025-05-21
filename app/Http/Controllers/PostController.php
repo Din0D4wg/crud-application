@@ -8,49 +8,88 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    public function DeletePost(Post $post)
+    public function index()
     {
         $user = Auth::user();
-        if ($user->role !== 'admin' && $user->id === $post->user_id) {
-            $post->clearMediaCollection('images');
-            $post->delete();
-        }
-        return redirect('/');
+        $posts = Post::with('user')->get();
+
+        return view('posts.index', compact('posts'));
     }
 
-    public function SaveEditedPost(Post $post, Request $request)
+    public function create()
     {
-        $user = Auth::user();
-        if ($user->role === 'admin' || $user->id !== $post->user_id) {
-            return redirect('/');
-        }
+        return view('posts.create');
+    }
 
-        $newpost = $request->validate([
-            'title' => 'required',
-            'body' => 'required',
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
-        $newpost['title'] = strip_tags($newpost['title']);
-        $newpost['body'] = strip_tags($newpost['body']);  
+        $data['title'] = strip_tags($data['title']);
+        $data['body'] = strip_tags($data['body']);
 
-        $post->update($newpost);
+        $post = Post::create([
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'user_id' => Auth::id(),
+        ]);
+
+        if ($request->hasFile('image')) {
+            $post->addMediaFromRequest('image')
+            ->toMediaCollection('images', 'public');
+        }
+
+        return redirect()->route('posts.index')->with('success', 'Post created successfully.');
+    }
+
+    public function edit(Post $post)
+    {
+        if (Auth::id() !== $post->user_id) {
+            return redirect()->route('posts.index')->with('error', 'You can only edit your own posts.');
+        }
+
+        return view('posts.edit', compact('post'));
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        if (Auth::id() !== $post->user_id) {
+            return redirect()->route('posts.index')->with('error', 'You can only update your own posts.');
+        }
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+        ]);
+
+        $data['title'] = strip_tags($data['title']);
+        $data['body'] = strip_tags($data['body']);
+
+        $post->update($data);
 
         if ($request->hasFile('image')) {
             $post->clearMediaCollection('images');
-            $post->addMediaFromRequest('image')->toMediaCollection('images');
+            $post->addMediaFromRequest('image')
+            ->toMediaCollection('images', 'public');
         }
 
-        return redirect('/');
+        return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
     }
 
-    public function EditPostHere(Post $post)
+    public function destroy(Post $post)
     {
-        $user = Auth::user();
-        if ($user->role === 'admin' || $user->id !== $post->user_id) {
-            return redirect('/');
+        if (Auth::id() !== $post->user_id) {
+            return redirect()->route('posts.index')->with('error', 'You can only delete your own posts.');
         }
 
-        return view('edit-post', ['post' => $post]);
+        $post->clearMediaCollection('images');
+        $post->delete();
+
+        return redirect()->route('posts.index')->with('success', 'Post deleted successfully.');
     }
 }

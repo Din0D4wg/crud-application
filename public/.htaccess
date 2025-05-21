@@ -3,6 +3,10 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_authz_core.c>
+    Require all granted
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
