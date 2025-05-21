@@ -1,16 +1,21 @@
-import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
+import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
 
+/** @type {import('tailwindcss').Config} */
 export default {
-  plugins: [
-    tailwindcss(),
-  ],
-  content: [
-    './resources/**/*.{js,jsx,vue,blade.php,html}',
-    './**/*.{js,jsx,vue,blade.php,html}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
+    content: [
+        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+        './storage/framework/views/*.php',
+        './resources/views/**/*.blade.php',
+    ],
+
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+            },
+        },
+    },
+
+    plugins: [forms],
+};

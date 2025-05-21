@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('username', 50)->unique();
             $table->string('email')->unique();
             $table->string('phone', 15);
-            $table->string('password');
+            $table->foreignId('user_id')->unique()->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
